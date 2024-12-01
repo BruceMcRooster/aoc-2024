@@ -4,38 +4,23 @@ struct Day01: AdventDay {
   var data: String
   
   var lists: ([Int], [Int]) {
-    var list1 = [Int]()
-    var list2 = [Int]()
-    
-    for line in data.components(separatedBy: .newlines) {
-      if line.isEmpty { continue }
-      let numbers = line.components(separatedBy: "   ").map { Int($0)! }
-      assert(numbers.count == 2)
-      list1.append(numbers[0])
-      list2.append(numbers[1])
-    }
-    
-    return (list1, list2)
+    return data.components(separatedBy: .newlines)
+      .filter { !$0.isEmpty }
+      .reduce(([Int](), [Int]())) { partialResult, line in
+        let numbers = line.components(separatedBy: "   ").map { Int($0)! }
+        return (partialResult.0 + [numbers[0]], partialResult.1 + [numbers[1]])
+      }
   }
 
   func part1() -> Any {
-    var sum = 0
-    let list1 = lists.0.sorted()
-    let list2 = lists.1.sorted()
-        
-    for i in 0..<list1.count {
-      sum += abs(list1[i] - list2[i])
+    return zip(lists.0.sorted(), lists.1.sorted()).reduce(0) { partialResult, input in
+      partialResult + abs(input.0 - input.1)
     }
-    
-    return sum
   }
 
   func part2() -> Any {
-    var score = 0
-    for item in lists.0 {
-      let count = lists.1.count { $0 == item }
-      score += item * count
+    return lists.0.reduce(0) { partialResult, item in
+      partialResult + lists.1.count { $0 == item } * item
     }
-    return score
   }
 }

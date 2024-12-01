@@ -1,0 +1,106 @@
+#! /usr/bin/env swift
+
+// First argument appears to be the path (get-day.swift), so we have to include (and skip) this
+guard CommandLine.argc == 2 else {
+  fatalError("Invalid number of arguments. Please input one argument (day number)")
+}
+
+guard let day = Int(CommandLine.arguments[1]) else {
+  fatalError("Could not parse day number. Please try a different input")
+}
+
+print("Session cookie value (from your browser, associated with your logged in account): ", separator: "")
+let sessionData = readLine()!.trimmingCharacters(in: .whitespacesAndNewlines)
+
+import Foundation
+
+let cookieProperties: [HTTPCookiePropertyKey: Any] = [
+  .domain: ".adventofcode.com",
+  .path: "/",
+  .name: "session",
+  .value: sessionData,
+  .secure: true,
+  .expires: Date(timeIntervalSinceNow: 120)
+]
+
+if let cookie = HTTPCookie(properties: cookieProperties) {
+  HTTPCookieStorage.shared.setCookie(cookie)
+} else {
+  fatalError("Something went wrong with your cookie")
+}
+
+guard let url = URL(string: "https://adventofcode.com/2024/day/\(day)/input") else {
+  fatalError("Bad URL")
+}
+
+let dayString = "Day" + String(format: "%02d", day)
+
+do {
+  guard FileManager.default.createFile(
+    atPath: "Sources/Data/\(dayString).txt",
+    contents: try String(contentsOf: url, encoding: .utf8).data(using: .utf8)
+  ) else {
+    fatalError("Could not successfully create input file")
+  }
+} catch {
+  fatalError("Could not load input file")
+}
+
+print("Downloaded input file to Sources/Data/\(dayString).txt.")
+
+let sourceFileDefault = """
+import Algorithms
+
+struct \(dayString): AdventDay {
+  var data: String
+
+  func part1() -> Any {
+    return 0
+  }
+
+  func part2() -> Any {
+    return 0
+  }
+}
+
+"""
+
+guard FileManager.default.createFile(
+  atPath: "Sources/\(dayString).swift",
+  contents: sourceFileDefault.data(using: .utf8)
+) else {
+  fatalError("Something went wrong while creating the solution source file")
+}
+
+print("Created source file (Sources/\(dayString).swift).")
+
+let testFileDefault = """
+import Testing
+
+@testable import AdventOfCode
+
+struct \(dayString)Tests {
+
+
+
+  @Test func testPart1() async throws {
+    #expect(true)
+  }
+
+  @Test func testPart2() async throws {
+    #expect(true)
+  }
+}
+
+"""
+
+guard FileManager.default.createFile(
+  atPath: "Tests/\(dayString).swift",
+  contents: testFileDefault.data(using: .utf8)
+) else {
+  fatalError("Something went wrong while creating the solution test file")
+}
+
+print("Created test file (Tests/\(dayString).swift).")
+print("Done. Good luck!")
+exit(0)

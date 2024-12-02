@@ -33,17 +33,21 @@ guard let url = URL(string: "https://adventofcode.com/2024/day/\(day)/input") el
   fatalError("Bad URL")
 }
 
+var inputRequest = URLRequest(url: url)
+inputRequest.setValue("Simple Swift AoC Tool by evan@brucemcrooster.dev as part of github.com/BruceMcRooster/aoc-2024", forHTTPHeaderField: "User-Agent")
+
 let dayString = "Day" + String(format: "%02d", day)
 
 do {
+  let (data, response) = try await URLSession.shared.data(for: inputRequest)
   guard FileManager.default.createFile(
     atPath: "Sources/Data/\(dayString).txt",
-    contents: try String(contentsOf: url, encoding: .utf8).data(using: .utf8)
+    contents: data
   ) else {
     fatalError("Could not successfully create input file")
   }
 } catch {
-  fatalError("Could not load input file")
+  fatalError("Something went wrong while downloading input data")
 }
 
 print("Downloaded input file to Sources/Data/\(dayString).txt.")

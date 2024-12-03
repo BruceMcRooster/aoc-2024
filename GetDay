@@ -106,5 +106,29 @@ guard FileManager.default.createFile(
 }
 
 print("Created test file (Tests/\(dayString).swift).")
+
+var adventOfCodeFile = try! String(contentsOf: URL(fileURLWithPath: "Sources/AdventOfCode.swift"), encoding: .utf8)
+
+let editedAdventFile = adventOfCodeFile
+  .replacingOccurrences(
+    of: "Day\(String(format: "%02d", day-1))()",
+    with: "Day\(String(format: "%02d", day-1))(), \n  \(dayString)()")
+
+if editedAdventFile == adventOfCodeFile {
+  fatalError("Could not insert \(dayString)() to AdventOfCode.swift array. Check that Day\(String(format: "%02d", day-1))() is the last element")
+}
+
+do {
+  try editedAdventFile.write(
+    to: URL(fileURLWithPath: "Sources/AdventOfCode.swift"),
+    atomically: true,
+    encoding: .utf8
+  )
+} catch {
+  fatalError("Could not write \(dayString)() to AdventOfCode.swift array")
+}
+
+print("Added \(dayString)() to AdventOfCode.swift array")
+
 print("Done. Good luck!")
 exit(0)

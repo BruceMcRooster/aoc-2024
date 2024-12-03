@@ -9,8 +9,20 @@ guard let day = Int(CommandLine.arguments[1]) else {
   fatalError("Could not parse day number. Please try a different input")
 }
 
-print("Session cookie value (from your browser, associated with your logged in account): ", separator: "")
-let sessionData = readLine()!.trimmingCharacters(in: .whitespacesAndNewlines)
+var sessionData: String = ""
+let saveFileURL = URL(fileURLWithPath: ".advent-of-code")
+
+if (FileManager.default.fileExists(atPath: ".advent-of-code")) {
+  print("Loading session cookie from .advent-of-code file")
+  sessionData = try! String(contentsOf: saveFileURL, encoding: .utf8)
+} else {
+  print("Session cookie value (from your browser, associated with your logged in account): ", separator: "")
+  sessionData = readLine()!.trimmingCharacters(in: .whitespacesAndNewlines)
+  print("Saving to .advent-of-code file")
+  try! sessionData.write(to: saveFileURL, atomically: true, encoding: .utf8)
+  print("Successfully wrote session data file, remember to add it to your .gitignore")
+}
+
 
 import Foundation
 

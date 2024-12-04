@@ -76,6 +76,21 @@ struct Day04: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    var count = 0
+    
+    for (index, char) in data.indexed() {
+      guard char == "A" else { continue }
+      
+      let NE = traceString(start: index, angle: .NE)
+      let NW = traceString(start: index, angle: .NW)
+      let SE = traceString(start: index, angle: .SE)
+      let SW = traceString(start: index, angle: .SW)
+      
+      let NESW = (NE.hasPrefix("AM") && SW.hasPrefix("AS")) || (NE.hasPrefix("AS") && SW.hasPrefix("AM"))
+      let NWSE = (NW.hasPrefix("AM") && SE.hasPrefix("AS")) || (NW.hasPrefix("AS") && SE.hasPrefix("AM"))
+      
+      if NESW && NWSE { count += 1 }
+    }
+    return count
   }
 }

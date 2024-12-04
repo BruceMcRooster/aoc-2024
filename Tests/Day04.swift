@@ -33,7 +33,15 @@ struct Day04Tests {
     #expect(String(describing: Day04(data: biggerPuzzle).part1()) == "18")
   }
 
+  let simpleSecondPuzzle = """
+  M.S
+  .A.
+  M.S
+
+  """
+  
   @Test func testPart2() async throws {
-    #expect(true)
+    #expect(String(describing: Day04(data: simpleSecondPuzzle).part2()) == "1")
+    #expect(String(describing: Day04(data: biggerPuzzle).part2()) == "9")
   }
 }

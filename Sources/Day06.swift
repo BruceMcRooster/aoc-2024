@@ -3,15 +3,18 @@ import Algorithms
 struct Day06: AdventDay {
   var data: String
   
+  var map: [Character]
+  
   init(data: String) {
     self.data = data
     self.width = data.split(separator: "\n").first!.count
     self.height = data.split(separator: "\n").filter { !$0.isEmpty }.count
+    self.map = Array(data).filter { $0 != "\n" }
   }
   
   let width: Int
   let height: Int
-
+  
   struct Orientation: Equatable, Hashable {
     let x: Int
     let y: Int
@@ -21,15 +24,16 @@ struct Day06: AdventDay {
     // Two orientations should be considered the same regardless
     // of the position of the guard at the time they were there
     static func == (lhs: Orientation, rhs: Orientation) -> Bool {
-      lhs.x == rhs.x && lhs.y == rhs.y
+      lhs.x == rhs.x && lhs.y == rhs.y && lhs.direction == rhs.direction
     }
     
     func hash(into hasher: inout Hasher) {
       hasher.combine(x)
       hasher.combine(y)
+      hasher.combine(direction)
     }
     
-    enum Direction {
+    enum Direction: Equatable, Hashable {
       case up, left, down, right
       func rotatedClockwise() -> Direction {
         switch self {
@@ -98,13 +102,18 @@ struct Day06: AdventDay {
     return (x, y)
   }
   
-  func advance(_ orientation: Orientation) throws(OffBoardError) -> Orientation {
+  func advance(_ orientation: Orientation, board: [Character]) throws(OffBoardError) -> Orientation {
     let nextPosition = orientation.advanced()
-    let nextIndex = try positionToIndex((nextPosition.x, nextPosition.y))
-    if data[nextIndex] == "." || data[nextIndex] == "^" {
+    guard 0 <= nextPosition.x
+            && nextPosition.x < width
+            && 0 <= nextPosition.y
+            && nextPosition.y < height
+    else { throw .notOnBoard }
+    let nextIndex = nextPosition.x + (nextPosition.y * width)
+    if board[nextIndex] == "." || board[nextIndex] == "^" {
       return nextPosition
     } else {
-      return try advance(orientation.rotatedClockwise())
+      return orientation.rotatedClockwise()
     }
   }
   
@@ -121,17 +130,67 @@ struct Day06: AdventDay {
     
     while true {
       do {
-        orientation = try advance(orientation)
+        orientation = try advance(orientation, board: map)
         allOrientations.insert(orientation)
       } catch {
         break
       }
     }
     
-    return allOrientations.count
+    return Set(allOrientations.map { Orientation(x: $0.x, y: $0.y, direction: .up) }).count
   }
-
+  
+  enum StuckInLoop: Error {
+    case stuck
+  }
+  
+  func traverse(from startOrientation: Orientation, onBoard board: [Character]) throws(StuckInLoop) -> Set<Orientation> {
+    assert(board.count == width * height)
+    
+    var visited: Set<Orientation> = [startOrientation]
+    var orientation = startOrientation
+        
+    while true {
+      do {
+        orientation = try advance(orientation, board: board)
+      } catch {
+        break
+      }
+      if !visited.insert(orientation).inserted {
+        throw StuckInLoop.stuck
+      }
+    }
+    return visited
+  }
+  
   func part2() -> Any {
-    return 0
+    let startIndex = data.firstIndex(of: "^")!
+    let startPosition = indexToPosition(startIndex)
+    let orientation = Orientation(
+      x: startPosition.x,
+      y: startPosition.y,
+      direction: .up
+    )
+    
+    let visited = Set(
+      try! traverse(from: orientation, onBoard: map)
+        .map { Orientation(x: $0.x, y: $0.y, direction: .up) }
+    )
+      .map { (x: $0.x, y: $0.y) }
+      .filter { $0.x != startPosition.x || $0.y != startPosition.y }
+    
+    var count = 0
+    
+    for position in visited {
+      var newBoard = map
+      newBoard[position.x + (position.y * width)] = "#"
+      do {
+        let _ = try traverse(from: orientation, onBoard: newBoard)
+        continue
+      } catch {
+        count += 1
+      }
+    }
+    return count
   }
 }

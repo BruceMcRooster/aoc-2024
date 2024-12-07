@@ -28,12 +28,21 @@ struct Day07: AdventDay {
   }
 
   enum Operator {
-    case add, multiply
+    case add, multiply, combine
     
     func operate(_ a: Int, _ b: Int) -> Int {
       switch self {
       case .add: return a + b
       case .multiply: return a * b
+      case .combine: return {
+        let digitCount = String(b).count
+        var aMultiplier = 1
+        for _ in 0..<digitCount {
+          aMultiplier *= 10
+        }
+        
+        return a * aMultiplier + b
+      }()
       }
     }
   }
@@ -83,6 +92,50 @@ struct Day07: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    func canWork(_ calibration: Calibration) -> Bool {
+      var withoutFirst: [Int] = calibration.values
+      withoutFirst.removeFirst()
+      
+      for numCombines in 0...withoutFirst.count {
+        for numMultiplies in 0...(withoutFirst.count-numCombines) {
+          let operators: [Operator] = Array(
+            repeating: .multiply,
+            count: numMultiplies
+          ) + Array(
+            repeating: .add,
+            count: withoutFirst.count - numMultiplies - numCombines
+          ) + Array(
+            repeating: .combine,
+            count: numCombines
+          )
+          
+          assert(operators.count == withoutFirst.count)
+          
+          
+          
+          for opSet in operators.uniquePermutations() {
+            var result = calibration.values.first!
+            for (`operator`, num) in zip(opSet, withoutFirst) {
+              result = `operator`.operate(result, num)
+            }
+            if result == calibration.sum {
+              return true
+            }
+          }
+          
+        }
+      }
+      return false
+    }
+    
+    var sum = 0
+    
+    for callibration in callibrations {
+      if canWork(callibration) {
+        sum += callibration.sum
+      }
+    }
+    
+    return sum
   }
 }

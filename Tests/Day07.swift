@@ -25,6 +25,11 @@ struct Day07Tests {
   }
 
   @Test func testPart2() async throws {
-    #expect(true)
+    let day07 = Day07(data: testData)
+    
+    let combine = Day07.Operator.combine
+    #expect(combine.operate(123, 456) == 123456)
+    
+    #expect(String(describing: day07.part2()) == "11387")
   }
 }

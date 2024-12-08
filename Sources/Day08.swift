@@ -55,17 +55,7 @@ struct Day08: AdventDay {
     }
   }
   
-  func possibleAntinodePositions(_ first: BoardPosition, _ second: BoardPosition) -> [BoardPosition] {
-    let xOffset = second.x - first.x
-    let yOffset = second.y - first.y
-    
-    return [
-      BoardPosition(x: first.x - xOffset, y: first.y - yOffset, width: width),
-      BoardPosition(x: second.x + xOffset, y: second.y + yOffset, width: width)
-    ]
-  }
-  
-  func allPossibleAntinodePositions(_ positions: [BoardPosition]) -> [BoardPosition] {
+  func allPossibleAntinodePositions(_ positions: [BoardPosition], _ possibleAntinodePositions: (BoardPosition, BoardPosition) -> [BoardPosition]) -> [BoardPosition] {
     var resultantPositions = [BoardPosition]()
     for i in 0..<(positions.endIndex - 1) {
       for j in i+1..<positions.endIndex {
@@ -105,13 +95,26 @@ struct Day08: AdventDay {
   }
   
   func part1() -> Any {
+    func possibleAntinodePositions(_ first: BoardPosition, _ second: BoardPosition) -> [BoardPosition] {
+      let xOffset = second.x - first.x
+      let yOffset = second.y - first.y
+      
+      return [
+        BoardPosition(x: first.x - xOffset, y: first.y - yOffset, width: width),
+        BoardPosition(x: second.x + xOffset, y: second.y + yOffset, width: width)
+      ]
+    }
+    
     var foundSet = Set<Character>()
     var antinodePositions = [BoardPosition]()
     
     
     for char in board {
       if char != "." && !foundSet.insert(char).inserted {
-        antinodePositions += allPossibleAntinodePositions(allPositionsOf(char))
+        antinodePositions += allPossibleAntinodePositions(
+          allPositionsOf(char),
+          possibleAntinodePositions
+        )
       }
     }
     
@@ -121,6 +124,52 @@ struct Day08: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    func possibleAntinodePositions(_ first: BoardPosition, _ second: BoardPosition) -> [BoardPosition] {
+      let xOffset = second.x - first.x
+      let yOffset = second.y - first.y
+      
+      var boardPositions = [BoardPosition]()
+      
+      // Starts at 0 because a tower that creates possible antinodes
+      // counts as a possible antinode position
+      for multiplier in 0...width {
+        let backPosition = BoardPosition(
+          x: first.x - (xOffset * multiplier),
+          y: first.y - (yOffset * multiplier),
+          width: width
+        )
+        let forwardPosition = BoardPosition(
+          x: second.x + (xOffset * multiplier),
+          y: second.y + (yOffset * multiplier),
+          width: width
+        )
+        if isOnBoard(backPosition) {
+          boardPositions.append(backPosition)
+        }
+        if isOnBoard(forwardPosition) {
+          boardPositions.append(forwardPosition)
+        }
+        if !isOnBoard(backPosition) && !isOnBoard(forwardPosition) {
+          break
+        }
+      }
+      
+      return boardPositions
+    }
+    
+    var foundSet = Set<Character>()
+    var antinodePositions = Set<BoardPosition>()
+    
+    
+    for char in board {
+      if char != "." && !foundSet.insert(char).inserted {
+        antinodePositions.formUnion(allPossibleAntinodePositions(
+          allPositionsOf(char),
+          possibleAntinodePositions
+        ))
+      }
+    }
+    
+    return antinodePositions.count
   }
 }

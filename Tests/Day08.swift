@@ -20,11 +20,14 @@ struct Day08Tests {
   
   """
 
-  @Test func testPart1() async throws {
+  @Test func testParse() async throws {
     let day8 = Day08(data: testData)
     
     #expect(day8.width == 12)
     #expect(day8.height == 12)
+  }
+  
+  @Test func testPart1() async throws {
     #expect(String(describing: Day08(data: testData).part1()) == "14")
   }
 

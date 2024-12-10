@@ -17,11 +17,14 @@ struct Day07Tests {
   
   """
 
-  @Test func testPart1() async throws {
+  @Test func testParse() async throws {
     let day07 = Day07(data: testData)
     
     #expect(day07.callibrations.count == 9)
-    #expect(String(describing: day07.part1()) == "3749")
+  }
+  
+  @Test func testPart1() async throws {
+    #expect(String(describing: Day07(data: testData).part1()) == "3749")
   }
 
   @Test func testPart2() async throws {

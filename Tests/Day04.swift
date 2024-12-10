@@ -27,8 +27,11 @@ struct Day04Tests {
   
   """
 
-  @Test func testPart1() async throws {
+  @Test func testParse() async throws {
     #expect(Day04(data: simplePuzzle).lineLength == 7)
+  }
+  
+  @Test func testPart1() async throws {
     #expect(String(describing: Day04(data: simplePuzzle).part1()) == "4")
     #expect(String(describing: Day04(data: biggerPuzzle).part1()) == "18")
   }

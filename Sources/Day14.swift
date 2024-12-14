@@ -79,11 +79,13 @@ struct Day14: AdventDay {
     func writeGrid(grid: [Robot], time: Int) {
       let magicStart = "P1\n\(width) \(height)\n"
       
-      let url = URL(filePath: "Day14Pt2Pictures/\(time).bmp")
+      let writePath: URL = FileManager.default
+        .urls(for: .downloadsDirectory, in: .userDomainMask).first!
+        .appending(path: "\(time).bmp")
       
-      FileManager.default.createFile(atPath: url.path, contents: magicStart.data(using: .utf8)!)
+      FileManager.default.createFile(atPath: writePath.path, contents: magicStart.data(using: .utf8)!)
       
-      let fileHandle = try! FileHandle(forWritingTo: url)
+      let fileHandle = try! FileHandle(forWritingTo: writePath)
       try! fileHandle.seekToEnd()
 
       for y in 0..<height {
@@ -96,21 +98,64 @@ struct Day14: AdventDay {
         }
         try! fileHandle.write(contentsOf: "\n".data(using: .utf8)!)
       }
+      print("Wrote board at time \(time) to \(writePath.path)")
     }
     
-    for seconds in 1...(width * height) {
+    func calcWidthStd(grid: [Robot]) -> Double {
+      let xPositions = grid.map { Double($0.position.x) }
+      
+      let average = xPositions.reduce(0, +) / Double(xPositions.count)
+      
+      let std = (xPositions
+        .map { ($0 - average) * ($0 - average) }
+        .reduce(0, +) / Double(xPositions.count))
+        .squareRoot()
+      
+      return std
+    }
+    
+    func calcHeightStd(grid: [Robot]) -> Double {
+      let yPositions = grid.map { Double($0.position.y) }
+      
+      let average = yPositions.reduce(0, +) / Double(yPositions.count)
+      
+      let std = (yPositions
+        .map { ($0 - average) * ($0 - average) }
+        .reduce(0, +) / Double(yPositions.count))
+        .squareRoot()
+      
+      return std
+    }
+    
+    var bestWidthStat: (second: Int, std: Double) = (second: 0, std: calcWidthStd(grid: robots))
+    var bestHeightStat: (second: Int, std: Double) = (second: 0, std: calcHeightStd(grid: robots))
+    
+    for second in 1...103 {
       for index in robots.indices {
         robots[index].step(width: width, height: height)
       }
+      let widthStd = calcWidthStd(grid: robots)
+      let heightStd = calcHeightStd(grid: robots)
       
-      // TODO: Tweak these numbers to suit other puzzles
-      // Shoutout to this reddit post that helped narrow in this
-      // https://www.reddit.com/r/adventofcode/comments/1hdwdbf/comment/m1zrnub/
-//      guard seconds % 101 == 72 // First instance of decent vertical alignment
-//              || seconds % 103 == 31 // First instance of decent horizontal alignment
-//      else { continue }
-      writeGrid(grid: robots, time: seconds)
+      if widthStd < bestWidthStat.std {
+        bestWidthStat = (second: second, std: widthStd)
+      }
+      if heightStd < bestHeightStat.std {
+        bestHeightStat = (second: second, std: heightStd)
+      }
     }
-    return 0
+    
+    // See Chinese Remainder Theorem
+    let convergingTime = (51 * 103 * bestWidthStat.second + 51 * 101 * bestHeightStat.second) % (101 * 103)
+    
+    for second in 104...convergingTime {
+      for index in robots.indices {
+        robots[index].step(width: width, height: height)
+      }
+      if second == convergingTime {
+//        writeGrid(grid: robots, time: second)
+      }
+    }
+    return convergingTime
   }
 }

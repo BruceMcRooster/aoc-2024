@@ -16,6 +16,16 @@ struct Day13: AdventDay {
       self.bAdd = (Int(String(bMatch.output.x))!, Int(String(bMatch.output.y))!)
       self.prize = (Int(String(prizeLocationMatch.output.x))!, Int(String(prizeLocationMatch.output.y))!)
     }
+    
+    init(aAdd: (x: Int, y: Int), bAdd: (x: Int, y: Int), prize: (x: Int, y: Int)) {
+      self.aAdd = aAdd
+      self.bAdd = bAdd
+      self.prize = prize
+    }
+    
+    func withPart2PrizeLocation() -> Button {
+      .init(aAdd: self.aAdd, bAdd: self.bAdd, prize: (self.prize.x + 10000000000000, self.prize.y + 10000000000000))
+    }
   }
   
   let buttons: [Button]
@@ -78,6 +88,30 @@ struct Day13: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    func minimizeCost(ofPressing button: Button) -> (aPresses: Int, bPresses: Int)? {
+      guard button.prize.x % gcd(button.aAdd.x, button.bAdd.x) == 0 else { return nil}
+      guard button.prize.y % gcd(button.aAdd.y, button.bAdd.y) == 0 else { return nil}
+      
+      // Got lost on the math, so partial credit for motivating me to do the simple math instead goes to
+      // https://forums.swift.org/t/advent-of-code-2024/76301/75
+      let aPresses = (button.prize.y * button.bAdd.x - button.bAdd.y * button.prize.x) / (button.aAdd.y * button.bAdd.x - button.bAdd.y * button.aAdd.x)
+      let bPresses = (button.prize.y - aPresses * button.aAdd.y) / button.bAdd.y
+      
+      if button.aAdd.x * aPresses + button.bAdd.x * bPresses == button.prize.x && button.aAdd.y * aPresses + button.bAdd.y * bPresses == button.prize.y {
+        return (aPresses, bPresses)
+      } else {
+        return nil
+      }
+    }
+    
+    var totalCost = 0
+    for button in buttons
+      .map({ $0.withPart2PrizeLocation() })
+    {
+      if let (aPresses, bPresses) = minimizeCost(ofPressing: button) {
+        totalCost += aPresses * 3 + bPresses
+      }
+    }
+    return totalCost
   }
 }

@@ -19,8 +19,12 @@ struct Day01: AdventDay {
   }
 
   func part2() -> Any {
+    var countLookup = [Int: Int]()
+    for item in lists.1 {
+      countLookup[item, default: 0] += 1
+    }
     return lists.0.reduce(0) { partialResult, item in
-      partialResult + lists.1.count { $0 == item } * item
+      partialResult + (countLookup[item] ?? 0) * item
     }
   }
 }

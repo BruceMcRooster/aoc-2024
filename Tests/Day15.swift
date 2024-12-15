@@ -49,6 +49,15 @@ struct Day15Tests {
     #expect(smallTestMap.height == 8)
     #expect(smallTestMap.robotPosition == (2,2))
     #expect(smallTestMap.map.count == 64)
+    
+    let smallTestMapWide = Day15.Map(
+      fromData: String(smallTestData.split(separator: "\n\n").first!),
+      isWide: true
+    )
+    #expect(smallTestMapWide.width == 16)
+    #expect(smallTestMapWide.height == 8)
+    #expect(smallTestMapWide.robotPosition == (4, 2))
+    #expect(smallTestMapWide.map.count == 128)
   }
   
   @Test func testPart1() async throws {
@@ -57,6 +66,6 @@ struct Day15Tests {
   }
 
   @Test func testPart2() async throws {
-    #expect(true)
+    #expect(String(describing: Day15(data: largeTestData).part2()) == "9021")
   }
 }

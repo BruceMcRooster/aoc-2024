@@ -203,56 +203,46 @@ struct Day16: AdventDay {
   }
   
   func part2() -> Any {
-    var priorityQueue = Deque<(cost: Int, node: Node, path: [(x: Int, y: Int)])>()
-    func enqueue(_ node: Node, cost: Int, path: [(x: Int, y: Int)]) {
+    var priorityQueue = Deque<(cost: Int, node: Node)>()
+    func enqueue(_ node: Node, cost: Int) {
       for (i, existing) in priorityQueue.enumerated() {
         if existing.cost > cost {
-          priorityQueue.insert((cost, node, path), at: i)
+          priorityQueue.insert((cost: cost, node: node), at: i)
           return
         }
       }
-      priorityQueue.append((cost, node, path)) // For if it is the largest (or the list is empty)
+      priorityQueue.append((cost: cost, node: node)) // For if it is the largest (or the list is empty)
     }
     
-    struct CostWithPossiblePaths: Hashable, Equatable {
-      let cost: Int
-      struct Position: Hashable, Equatable {
-        private let x: Int
-        private let y: Int
-        
-        var position: (x: Int, y: Int) {
-          (x, y)
-        }
-        
-        init(pair: (x: Int, y: Int)) {
-          self.x = pair.x
-          self.y = pair.y
-        }
-      }
-      var paths: [[Position]]
+    var costs: [Node: Int] = [:]
+    
+    struct Position: Hashable {
+      let x: Int
+      let y: Int
       
-      init(cost: Int, paths: [[(x: Int, y: Int)]]) {
-        self.cost = cost
-        self.paths = paths.map({ path in
-          path.map(Position.init)
-        })
+      init(_ x: Int, _ y: Int) {
+        self.x = x
+        self.y = y
       }
-      
-      mutating func add(path: [(x: Int, y: Int)]) {
-        paths.append(path.map(Position.init))
+      init(_ pair: (Int, Int)) {
+        self.x = pair.0
+        self.y = pair.1
+      }
+      func toPair() -> (x: Int, y: Int) {
+        (x, y)
       }
     }
     
-    var costs: [Node: CostWithPossiblePaths] = [:]
+    var paths = [Node: Set<Position>]()
     let startNode = Node(start, facing: .east)
-    let startCost = CostWithPossiblePaths(cost: 0, paths: [[start]])
-    costs[startNode] = startCost
-    enqueue(startNode, cost: 0, path: [start])
+    costs[startNode] = 0
+    paths[startNode] = [Position(startNode.position)]
+    enqueue(startNode, cost: 0)
     
     while !priorityQueue.isEmpty {
-      let (currCost, currNode, currPath) = priorityQueue.removeFirst()
+      let (currCost, currNode) = priorityQueue.removeFirst()
       
-      if let recordedCost = costs[currNode], recordedCost.cost < currCost {
+      if let recordedCost = costs[currNode], recordedCost < currCost {
         continue // We found a cheaper way to get here already
       }
       
@@ -261,30 +251,31 @@ struct Day16: AdventDay {
         
         let totalCost = 1 + newCost + currCost
         let neighborNode = Node(neighbor, facing: newDirection)
-        if totalCost < (costs[neighborNode]?.cost ?? Int.max) {
-          let totalCostWithPath = CostWithPossiblePaths(cost: totalCost, paths: [currPath + [neighbor]])
-          costs[neighborNode] = totalCostWithPath
-          enqueue(neighborNode, cost: totalCost, path: currPath + [neighbor])
-        } else if totalCost == costs[neighborNode]!.cost {
-          costs[neighborNode]!.add(path: currPath + [neighbor])
-          enqueue(neighborNode, cost: totalCost, path: currPath + [neighbor])
+        if totalCost < (costs[neighborNode] ?? Int.max) {
+          costs[neighborNode] = totalCost
+          paths[neighborNode] = paths[currNode]!.union([Position(neighbor)])
+          enqueue(neighborNode, cost: totalCost)
+        } else if totalCost == costs[neighborNode]! {
+          paths[neighborNode] = paths[neighborNode]!.union(paths[currNode]!)
         }
       }
     }
-    var allNodesInEndPath: [CostWithPossiblePaths.Position] = []
-    var bestCost = Int.max
-    for possibleEndDirections in Facing.allCases {
-      guard let endCostWithPaths = costs[Node(end, facing: possibleEndDirections)] else {
+    
+    var included = Set<Position>()
+    var bestScore = Int.max
+    for possibleEndDirection in Facing.allCases {
+      guard let endPath = paths[Node(end, facing: possibleEndDirection)] else {
         continue
       }
-      if endCostWithPaths.cost < bestCost {
-        bestCost = endCostWithPaths.cost
-        allNodesInEndPath = endCostWithPaths.paths.reduce([], +)
-      } else if endCostWithPaths.cost == bestCost {
-        allNodesInEndPath += endCostWithPaths.paths.reduce([], +)
+      let score = costs[Node(end, facing: possibleEndDirection)]!
+      if score < bestScore {
+        bestScore = score
+        included = endPath
+      } else if score == bestScore {
+        included.formUnion(endPath)
       }
     }
     
-    return allNodesInEndPath.uniqued().count(where: {_ in true})
+    return included.count
   }
 }

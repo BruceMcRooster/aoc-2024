@@ -57,6 +57,15 @@ struct Day17Tests {
   Program: 2,6,5,5
 
   """
+  
+  let part2TestData = """
+  Register A: 2024
+  Register B: 0
+  Register C: 0
+
+  Program: 0,3,5,4,3,0
+  
+  """
 
   @Test func testPart1() async throws {
     #expect(String(describing: Day17(data: testData).part1()) == "4,6,3,5,6,3,5,2,1,0")
@@ -68,6 +77,6 @@ struct Day17Tests {
   }
 
   @Test func testPart2() async throws {
-    #expect(true)
+    #expect(String(describing: Day17(data: part2TestData).part2()) == "117440")
   }
 }

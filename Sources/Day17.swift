@@ -4,7 +4,7 @@ import RegexBuilder
 struct Day17: AdventDay {
   var data: String
 
-  func part1() -> Any {
+  func readProgram() -> (registerA: Int, registerB: Int, registerC: Int, program: Array<Int>) {
     let registerAMatch = Reference<Int>()
     let registerBMatch = Reference<Int>()
     let registerCMatch = Reference<Int>()
@@ -40,11 +40,10 @@ struct Day17: AdventDay {
     
     let match = data.firstMatch(of: inputRegex)!
     
-    var registerA = match[registerAMatch]
-    var registerB = match[registerBMatch]
-    var registerC = match[registerCMatch]
-    let program = match[programMatch]
-    
+    return (match[registerAMatch], match[registerBMatch], match[registerCMatch], match[programMatch])
+  }
+  
+  func runProgram(registerA: inout Int, registerB: inout Int, registerC: inout Int, program: Array<Int>) -> [Int] {
     var programPointer = 0
     
     var output = [Int]()
@@ -110,11 +109,91 @@ struct Day17: AdventDay {
       default: fatalError("Invalid operation: \(currOperation)")
       }
     }
+    return output
+  }
+  
+  func part1() -> Any {
+    let programRead = readProgram()
+    
+    var registerA = programRead.registerA
+    var registerB = programRead.registerB
+    var registerC = programRead.registerC
+    let program = programRead.program
+    
+    let output = runProgram(registerA: &registerA, registerB: &registerB, registerC: &registerC, program: program)
     
     return output.map(String.init).joined(separator: ",")
   }
 
   func part2() -> Any {
-    return 0
+    let programRead = readProgram()
+    let program = programRead.program
+    
+    assert(program.count > 1, "Can't search that short of a program")
+    var minA = 1 << ((program.count - 1) * 3) // 8^(program.count - 1)
+    
+    let maxA = 1 << (program.count * 3) // 8^(program.count)
+    
+    var searchIndex = program.count - 1
+    
+    /* Brief explanation of the logic here:
+     
+    Two key observations:
+        The outputs are of length k when A ∈ [8^(k-1), 8^k)
+     
+        As we increase, there is a pattern in the output of the program
+        If x is some number we are looking for
+        
+        ...
+        ****y
+        ****x ---
+        ...     repeats 8^(k-1) times, where k is length of strings in this segment
+        ****x ---
+        ****z
+        ...
+        
+     Based on this, we can skip by 8^(k-1) every time until we find the end we are looking for.
+     Then we can search within that for outputs ending in the two digits we are looking for,
+     skipping by 8^(k-2) when we don't find it, then look for 3 digits skipping 8^(k-3), and so on.
+     */
+    
+    
+    while minA < maxA {
+      var registerA = minA
+      var registerB = programRead.registerB
+      var registerC = programRead.registerC
+      
+      let output = runProgram(
+        registerA: &registerA,
+        registerB: &registerB,
+        registerC: &registerC,
+        program: program
+      )
+      
+      // This has to be a full range match because it messed up 1 digit in my full test
+      // when just comparing at each search index (output[searchIndex] == program[searchIndex])
+      if output[searchIndex...] == program[searchIndex...] {
+        searchIndex -= 1
+        if searchIndex == -1 { break }
+      } else {
+        minA += 1 << ((program.count - 1 - (program.count - 1 - searchIndex)) * 3)
+      }
+    }
+    
+    var registerA = minA
+    var registerB = programRead.registerB
+    var registerC = programRead.registerC
+    
+    let output = runProgram(
+      registerA: &registerA,
+      registerB: &registerB,
+      registerC: &registerC,
+      program: program
+    )
+    
+    if output == program {
+      return minA
+    }
+    fatalError("Could not find program in output")
   }
 }

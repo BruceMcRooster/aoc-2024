@@ -80,6 +80,40 @@ struct Day19: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    var waysToMakePatterns = [ArraySlice<Character>: Int]()
+    
+    func countWaysToMake(pattern: ArraySlice<Character>) -> Int {
+      guard waysToMakePatterns[pattern] == nil else { return waysToMakePatterns[pattern]! }
+      
+      let possibleTowels = towels[pattern.first!]!.filter({ pattern.starts(with: $0) })
+      
+      guard !possibleTowels.isEmpty else {
+        waysToMakePatterns[pattern] = 0
+        return 0
+      }
+      
+      var waysCount = 0
+      
+      for towel in possibleTowels {
+        let nextPattern = pattern.suffix(from: pattern.index(pattern.startIndex, offsetBy: towel.count))
+        
+        if nextPattern.isEmpty {
+          waysCount += 1
+          continue
+        }
+        
+        waysCount += countWaysToMake(pattern: nextPattern)
+      }
+      
+      waysToMakePatterns[pattern] = waysCount
+      return waysCount
+    }
+    
+    var ways = 0
+    
+    for pattern in patterns {
+      ways += countWaysToMake(pattern: ArraySlice(pattern))
+    }
+    return ways
   }
 }

@@ -3,37 +3,37 @@ import Algorithms
 struct Day20: AdventDay {
   var data: String
 
-  var picosecondCutoff: Int
+  var picosecondsSaved: Int
+  
+  var width: Int
+  var height: Int
+  
+  var validPositions: Set<Position>
+  
+  var startPosition: Position = Position(x: -1, y: -1)
+  var endPosition: Position = Position(x: -1, y: -1)
+  
+  var picosecondsToEnd: [Position : Int]
   
   init(data: String) {
-    self.data = data
-    self.picosecondCutoff = 100
+    self.init(data: data, picosecondsSaved: 100)
   }
   
-  init(data: String, picosecondCutoff: Int) {
-    self.data = data
-    self.picosecondCutoff = picosecondCutoff
-  }
-  
-  func part1() -> Any {
-    struct Position: Hashable {
-      let x: Int
-      let y: Int
-    }
+  init(data: String, picosecondsSaved: Int) {
+    self.data = data.trimmingCharacters(in: .whitespacesAndNewlines)
+    self.picosecondsSaved = picosecondsSaved
     
-    var startPosition: Position = Position(x: -1, y: -1)
-    var endPosition: Position = Position(x: -1, y: -1)
-    
-    var validPositions: Set<Position> = []
-    
-    var width: Int?
     var height = 0
+    var width: Int?
     
-    for (index, char) in data.enumerated() {
+    self.validPositions = Set()
+    
+    for (index, char) in self.data.enumerated() {
       guard char != "\n" else {
         if width == nil {
           width = index
         }
+        
         height += 1
         continue
       }
@@ -50,40 +50,45 @@ struct Day20: AdventDay {
       
       validPositions.insert(position)
     }
-    
     assert(startPosition != Position(x: -1, y: -1))
     assert(endPosition != Position(x: -1, y: -1))
     
-    var picosecondsToEnd = [Position: Int]()
+    self.width = width!
+    self.height = height + 1
     
-    func getPicosecondsToTraverse() -> Int {
-      var queue = [(position: endPosition, cost: 0)]
+    self.picosecondsToEnd = [Position : Int]()
+    
+    var queue = [(position: endPosition, cost: 0)]
+    
+    while !queue.isEmpty {
+      let (position, cost) = queue.removeFirst()
       
-      while !queue.isEmpty {
-        let (position, cost) = queue.removeFirst()
-        
-        guard picosecondsToEnd[position] == nil else { continue }
-        
-        picosecondsToEnd[position] = cost
-        
-        if validPositions.contains(Position(x: position.x - 1, y: position.y)) {
-          queue.append((Position(x: position.x - 1, y: position.y), cost + 1))
-        }
-        if validPositions.contains(Position(x: position.x + 1, y: position.y)) {
-          queue.append((Position(x: position.x + 1, y: position.y), cost + 1))
-        }
-        if validPositions.contains(Position(x: position.x, y: position.y - 1)) {
-          queue.append((Position(x: position.x, y: position.y - 1), cost + 1))
-        }
-        if validPositions.contains(Position(x: position.x, y: position.y + 1)) {
-          queue.append((Position(x: position.x, y: position.y + 1), cost + 1))
-        }
+      guard picosecondsToEnd[position] == nil else { continue }
+      
+      picosecondsToEnd[position] = cost
+      
+      if validPositions.contains(Position(x: position.x - 1, y: position.y)) {
+        queue.append((Position(x: position.x - 1, y: position.y), cost + 1))
       }
-      
-      return picosecondsToEnd[startPosition]!
+      if validPositions.contains(Position(x: position.x + 1, y: position.y)) {
+        queue.append((Position(x: position.x + 1, y: position.y), cost + 1))
+      }
+      if validPositions.contains(Position(x: position.x, y: position.y - 1)) {
+        queue.append((Position(x: position.x, y: position.y - 1), cost + 1))
+      }
+      if validPositions.contains(Position(x: position.x, y: position.y + 1)) {
+        queue.append((Position(x: position.x, y: position.y + 1), cost + 1))
+      }
     }
-    
-    let noCheatTraverseTime = getPicosecondsToTraverse()
+  }
+  
+  struct Position: Hashable {
+    let x: Int
+    let y: Int
+  }
+
+  func part1() -> Any {
+    let noCheatTraverseTime = picosecondsToEnd[startPosition]!
         
     func findCheatCounts() -> Int {
       func getNeighbors(to position: Position) -> [(position: Position, needsCheat: Bool)] {
@@ -125,12 +130,12 @@ struct Day20: AdventDay {
         let (position, time, hasCheated) = queue.removeFirst()
         
         guard time + picosecondsToEnd[position]! <= noCheatTraverseTime else { continue }
-        guard time <= noCheatTraverseTime - picosecondCutoff else { continue }
+        guard time <= noCheatTraverseTime - picosecondsSaved else { continue }
         
         guard !hasCheated else {
           let timeToEndFrom = picosecondsToEnd[position]!
           
-          if time + timeToEndFrom <= noCheatTraverseTime - picosecondCutoff {
+          if time + timeToEndFrom <= noCheatTraverseTime - picosecondsSaved {
             waysCount += 1
           }
           
@@ -148,6 +153,53 @@ struct Day20: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    struct Cheat: Hashable {
+      let start: Position
+      let end: Position
+      
+      var length: Int {
+        abs(end.x - start.x) + abs(end.y - start.y)
+      }
+    }
+    
+    /// Returns a dictionary of possible cheats and their
+    func findCheats(maxCheatLength: Int) -> Set<Cheat> {
+      let lengthFromStart = picosecondsToEnd[startPosition]!
+      
+      func getCheats(from position: Position) -> [Cheat] {
+        var cheats = [Cheat]()
+        
+        for x in max(position.x - maxCheatLength, 0)...min(position.x + maxCheatLength, width - 1) {
+          for y in max(position.y - (maxCheatLength - abs(position.x - x)), 0)...min(position.y + (maxCheatLength - abs(position.x - x)), height - 1) {
+            if validPositions.contains(Position(x: x, y: y)) {
+              cheats.append(Cheat(start: position, end: Position(x: x, y: y)))
+              continue
+            }
+          }
+        }
+        
+        return cheats
+      }
+      
+      var validCheats: Set<Cheat> = []
+      
+      for pathPosition in validPositions where pathPosition != endPosition {
+        for cheat in getCheats(from: pathPosition) {
+          let lengthToStart = lengthFromStart - picosecondsToEnd[cheat.start]!
+          
+          let lengthFromEnd = picosecondsToEnd[cheat.end]!
+          
+          let totalLength = lengthToStart + cheat.length + lengthFromEnd
+                    
+          if totalLength <= lengthFromStart - picosecondsSaved {
+            validCheats.insert(cheat)
+          }
+        }
+      }
+      return validCheats
+    }
+    
+    let cheats = findCheats(maxCheatLength: 20)
+    return cheats.count
   }
 }

@@ -112,19 +112,20 @@ struct Day22: AdventDay {
     let priceChanges: [[(price: Int8, change: Int8)]] = initialSecretNumbers.map(calcPricesAndChanges)
     
     for priceChange in priceChanges {
+      
+      var alreadySeenPatterns: Set<PriceChangePattern> = []
+      
       for startIndex in priceChange.startIndex..<(priceChange.endIndex - 3) {
         let pattern = PriceChangePattern(fromChanges: priceChange, afterIndex: startIndex)
         
-        guard changesMaxPrice[pattern] == nil else { continue }
+        guard alreadySeenPatterns.insert(pattern).inserted else { continue }
         
-        let maxPrice = priceChanges
-          .compactMap({ pattern.getSalePrice(inChanges: $0) })
-          .reduce(0, +)
-        
-        changesMaxPrice[pattern] = maxPrice
+        changesMaxPrice[pattern, default: 0] += Int(priceChange[startIndex + 3].price)
       }
     }
     
-    return changesMaxPrice.values.max()!
+    let maxPair = changesMaxPrice.max { $0.value < $1.value }
+    
+    return maxPair!.value
   }
 }

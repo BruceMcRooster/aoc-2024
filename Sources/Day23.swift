@@ -3,8 +3,11 @@ import Algorithms
 struct Day23: AdventDay {
   var data: String
 
-  func part1() -> Any {
-    var connections: [Substring : Set<Substring>] = [:]
+  var connections: [Substring : Set<Substring>]
+  
+  init(data: String) {
+    self.data = data
+    self.connections = [:]
     
     for connection in data.split(separator: "\n") {
       let nodes = connection.split(separator: "-", maxSplits: 1)
@@ -14,6 +17,9 @@ struct Day23: AdventDay {
       connections[node1, default: []].insert(node2)
       connections[node2, default: []].insert(node1)
     }
+  }
+  
+  func part1() -> Any {
     
     var connectedToTNodes: Set<Set<Substring>> = []
     
@@ -34,6 +40,41 @@ struct Day23: AdventDay {
   }
 
   func part2() -> Any {
-    return 0
+    var largestConnection: Set<Substring> = []
+    
+    func largestLANParty(with node: Substring) -> Set<Substring> {
+      let allOtherConnections = connections[node]!
+        .filter { connections[$0]!.intersection(connections[node]!).count > 1 }
+      
+      var best = Set<Substring>()
+      
+      lanParties: for possibleLANParty in allOtherConnections.combinations(ofCount: 2...).reversed() {
+        guard possibleLANParty.count > best.count else { continue }
+        
+        let lanSet = Set(possibleLANParty)
+        
+        for connection in possibleLANParty {
+          guard connections[connection]!
+            .intersection(lanSet).count == lanSet.count - 1 else { continue lanParties }
+        }
+        
+        best = lanSet
+      }
+      
+      best.insert(node)
+      return best
+    }
+    
+    for node in connections.keys {
+      guard connections[node]!.count >= 2 else { continue }
+      
+      let largest = largestLANParty(with: node)
+      
+      if largest.count > largestConnection.count {
+        largestConnection = largest
+      }
+    }
+    
+    return largestConnection.sorted().joined(separator: ",")
   }
 }

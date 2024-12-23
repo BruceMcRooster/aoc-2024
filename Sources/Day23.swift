@@ -42,14 +42,20 @@ struct Day23: AdventDay {
   func part2() -> Any {
     var largestConnection: Set<Substring> = []
     
-    func largestLANParty(with node: Substring) -> Set<Substring> {
+    func largestLANParty(with node: Substring) -> Set<Substring>? {
       let allOtherConnections = connections[node]!
         .filter { connections[$0]!.intersection(connections[node]!).count > 1 }
+      
+      // Couldn't possibly have a bigger alternative set of connections
+      guard allOtherConnections.count + 1 > largestConnection.count
+      else { return nil }
       
       var best = Set<Substring>()
       
       lanParties: for possibleLANParty in allOtherConnections.combinations(ofCount: 2...).reversed() {
-        guard possibleLANParty.count > best.count else { continue }
+        guard possibleLANParty.count > best.count
+                && possibleLANParty.count + 1 > largestConnection.count
+        else { continue }
         
         let lanSet = Set(possibleLANParty)
         
@@ -61,16 +67,18 @@ struct Day23: AdventDay {
         best = lanSet
       }
       
+      guard !best.isEmpty else { return nil }
+      
       best.insert(node)
       return best
     }
     
-    for node in connections.keys {
+    for node in connections.sorted(by: { $0.value.count > $1.value.count }).map(\.key) {
       guard connections[node]!.count >= 2 else { continue }
       
       let largest = largestLANParty(with: node)
-      
-      if largest.count > largestConnection.count {
+            
+      if let largest, largest.count > largestConnection.count {
         largestConnection = largest
       }
     }

@@ -106,25 +106,6 @@ struct Day24: AdventDay {
   }
 
   func part2() -> Any {
-    let correctOutput: Int = {
-      let x = {
-        var result = 0
-        for xWire in initialValues.filter({ $0.key.first! == "x" }) {
-          result |= xWire.value ? (1 << Int(xWire.key.dropFirst())!) : 0
-        }
-        return result
-      }()
-      let y = {
-        var result = 0
-        for yWire in initialValues.filter({ $0.key.first! == "y" }) {
-          result |= yWire.value ? (1 << Int(yWire.key.dropFirst())!) : 0
-        }
-        return result
-      }()
-      
-      return x + y
-    }()
-    
     // Based on https://www.reddit.com/r/adventofcode/comments/1hla5ql/2024_day_24_part_2_a_guide_on_the_idea_behind_the/
     
     let largestBit = String(UInt8(initialValues.keys.sorted().last!.dropFirst())! + 1)
@@ -182,29 +163,6 @@ struct Day24: AdventDay {
     }
     
     assert(suspiciousGates.count == 8)
-    
-    // TODO: Add back when it won't overflow the call stack
-    
-//    func checkSuccess() -> Bool {
-//      for possibleSwaps in suspiciousGates.permutations() {
-//        let swaps = possibleSwaps.chunks(ofCount: 2)
-//        
-//        var tryGates = [Substring : Gate]()
-//        for swap in swaps {
-//          tryGates[swap.first!] = gates[swap.last!]!
-//          tryGates[swap.last!] = gates[swap.first!]!
-//        }
-//        if calcOutput(of: tryGates) == correctOutput {
-//          print("Correct Pairs were \(swaps.map { ($0.first!, $0.last!) })")
-//          return true
-//        }
-//      }
-//      return false
-//    }
-//    
-//    guard checkSuccess() else {
-//      fatalError("Something went terribly wrong")
-//    }
     
     return suspiciousGates.sorted().joined(separator: ",")
   }

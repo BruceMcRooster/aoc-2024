@@ -76,31 +76,6 @@ struct Day14: AdventDay {
   func part2() -> Any {
     var robots = data.split(separator: "\n").filter { !$0.isEmpty }.map { Robot(fromData: $0) }
     
-    func writeGrid(grid: [Robot], time: Int) {
-      let magicStart = "P1\n\(width) \(height)\n"
-      
-      let writePath: URL = FileManager.default
-        .urls(for: .downloadsDirectory, in: .userDomainMask).first!
-        .appending(path: "\(time).bmp")
-      
-      FileManager.default.createFile(atPath: writePath.path, contents: magicStart.data(using: .utf8)!)
-      
-      let fileHandle = try! FileHandle(forWritingTo: writePath)
-      try! fileHandle.seekToEnd()
-
-      for y in 0..<height {
-        for x in 0..<width {
-          if grid.contains(where: { $0.position == (x, y) }) {
-            try! fileHandle.write(contentsOf: "1 ".data(using: .utf8)!)
-          } else {
-            try! fileHandle.write(contentsOf: "0 ".data(using: .utf8)!)
-          }
-        }
-        try! fileHandle.write(contentsOf: "\n".data(using: .utf8)!)
-      }
-      print("Wrote board at time \(time) to \(writePath.path)")
-    }
-    
     func calcWidthStd(grid: [Robot]) -> Double {
       let xPositions = grid.map { Double($0.position.x) }
       
@@ -148,14 +123,41 @@ struct Day14: AdventDay {
     // See Chinese Remainder Theorem
     let convergingTime = (51 * 103 * bestWidthStat.second + 51 * 101 * bestHeightStat.second) % (101 * 103)
     
+    #if WRITE_TREE
+    func writeGrid(grid: [Robot], time: Int) {
+      let magicStart = "P1\n\(width) \(height)\n"
+      
+      let writePath: URL = FileManager.default
+        .urls(for: .downloadsDirectory, in: .userDomainMask).first!
+        .appending(path: "\(time).bmp")
+      
+      FileManager.default.createFile(atPath: writePath.path, contents: magicStart.data(using: .utf8)!)
+      
+      let fileHandle = try! FileHandle(forWritingTo: writePath)
+      try! fileHandle.seekToEnd()
+
+      for y in 0..<height {
+        for x in 0..<width {
+          if grid.contains(where: { $0.position == (x, y) }) {
+            try! fileHandle.write(contentsOf: "1 ".data(using: .utf8)!)
+          } else {
+            try! fileHandle.write(contentsOf: "0 ".data(using: .utf8)!)
+          }
+        }
+        try! fileHandle.write(contentsOf: "\n".data(using: .utf8)!)
+      }
+      print("Wrote board at time \(time) to \(writePath.path)")
+    }
+    
     for second in 104...convergingTime {
       for index in robots.indices {
         robots[index].step(width: width, height: height)
       }
       if second == convergingTime {
-//        writeGrid(grid: robots, time: second)
+        writeGrid(grid: robots, time: second)
       }
     }
+    #endif
     return convergingTime
   }
 }

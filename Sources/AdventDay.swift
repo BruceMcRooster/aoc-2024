@@ -61,12 +61,9 @@ extension AdventDay {
   static func loadData(challengeDay: Int) -> String {
     let dayString = String(format: "%02d", challengeDay)
     let dataFilename = "Day\(dayString)"
-    let dataURL = Bundle.module.url(
-      forResource: dataFilename,
-      withExtension: "txt",
-      subdirectory: "Data")
+    let dataURL = URL(fileURLWithPath: "Sources/Data/\(dataFilename).txt", isDirectory: false, relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true))
 
-    guard let dataURL,
+    guard FileManager.default.fileExists(atPath: dataURL.path()),
       let data = try? String(contentsOf: dataURL, encoding: .utf8)
     else {
       fatalError("Couldn't find file '\(dataFilename).txt' in the 'Data' directory.")

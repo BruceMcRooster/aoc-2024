@@ -28,7 +28,7 @@ let package = Package(
     .executableTarget(
       name: "AdventOfCode",
       dependencies: dependencies,
-      resources: [.copy("Data")]
+      exclude: ["Data/"]
     ),
     .testTarget(
       name: "AdventOfCodeTests",

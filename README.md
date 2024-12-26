@@ -1,89 +1,18 @@
-# Advent of Code Swift Starter Project
+# Advent of Code 2024 In Swift
 
 [![Language](https://img.shields.io/badge/language-Swift-red.svg)](https://swift.org)
 
-Daily programming puzzles at [Advent of Code](<https://adventofcode.com/>), by
-[Eric Wastl](<http://was.tl/>). This is a small example starter project for
-building Advent of Code solutions.
+This year, for the first time, I participated in the 25 days of Eric Wastl's [Advent Of Code](https://adventofcode.com). I had a ton of fun, and will certainly be back next year.
+
+All of the code I used is in this repo, however messy it is. If you get stuck, feel free to look at some of my code, but I highly recommend you try to understand what my code is doing and then implement it yourself, rather than copying. You learn a lot more that way.
+If you want to reference your answer, I have published [a few executables](https://github.com/BruceMcRooster/aoc-2024/releases/tag/2024) that *should* work as a reference for test cases you might make. Just create your test input in a folder in `Data/Sources/DayXX.txt` relative to the executable and it should work. No promises, though. Feel free to reach out if my code doesn't correctly solve some input you give it. 
+
+If you are doing these challenges in Swift, I highly recommend using the starter template [here](https://github.com/apple/swift-aoc-starter-example). 
+I also recommend copying the [`GetDay`](/GetDay) executable I made to automatically download the input file for a specific day and set up all the other things you need using `./GetDay <day num>`. Just remember to add the `.advent-of-code` file it generates to store your cookie to your `.gitignore`.
 
 ## Usage
 
-Swift comes with Xcode, or you can [install it](https://www.swift.org/install/)
-on a supported macOS, Linux, or Windows platform. 
+If you clone this repository, make sure you have Swift installed. Then, you can run `swift run AdventOfCode <day number>`, or `swift run -c release --benchmark <day number>` if you want to fully compile and benchmark the code on a certain day. You can also pass the `--all` flag instead of a day number to run every challenge.
 
-If you're using Xcode, you can open this project by choosing File / Open and
-select the parent directory. 
 
-If you prefer the command line, you can run the test suite with `swift test`,
-and run the output with `swift run`.
-
-If you're using Visual Studio Code to edit, you might find these Swift
-extensions useful:
-
-- [Swift](https://marketplace.visualstudio.com/items?itemName=sswg.swift-lang)
-  (provides core language edit / debug / test features)
-- [apple-swift-format](https://marketplace.visualstudio.com/items?itemName=vknabel.vscode-apple-swift-format)
-  (supports the [swift-format](https://github.com/apple/swift-format) package)
-
-## Challenges
-
-The challenges assume three files (replace 00 with the day of the challenge).
-
-- `Sources/Data/Day00.txt`: the input data provided for the challenge
-- `Sources/Day00.swift`: the code to solve the challenge
-- `Tests/Day00.swift`: any unit tests that you want to include
-
-To start a new day's challenge, make a copy of these files, updating 00 to the 
-day number.
-
-```diff
-// Add each new day implementation to this array:
-let allChallenges: [any AdventDay] = [
--  Day00()
-+  Day00(),
-+  Day01(),
-]
-```
-
-Then implement part 1 and 2. The `AdventOfCode.swift` file controls which challenge
-is run with `swift run`. Add your new type to its `allChallenges` array. By default 
-it runs the most recent challenge.
-
-The `AdventOfCode.swift` file controls which day's challenge is run
-with `swift run`. By default that runs the most recent challenge in the package.
-
-To supply command line arguments use `swift run AdventOfCode`. For example,
-`swift run -c release AdventOfCode --benchmark 3` builds the binary with full
-optimizations, and benchmarks the challenge for day 3.
-
-## Linting and Formatting
-
-Challenge source code can be linted and formatted automatically using the
-included dependency on `swift-format`.
-
-Lint source code with the following command:
-
-```shell
-$ swift package lint-source-code
-```
-
-Format source code with the following command:
-
-```shell
-$ swift package format-source-code
-Plugin ‘Format Source Code’ wants permission to write to the package directory.
-Stated reason: “This command formats the Swift source files”.
-Allow this plugin to write to the package directory? (yes/no)
-```
-
-To avoid the interactive prompt when formatting source code, use the 
-`--allow-writing-to-package-directory` flag.
- 
-```shell
-$ swift package format-source-code --allow-writing-to-package-directory
-```
-
-swift-format will use the built-in default style to lint and format code. A
-`.swift-format` configuration file can be used to customize the style used, see
-[Configuration](https://github.com/apple/swift-format/blob/main/Documentation/Configuration.md)
-for more details. 
+Happy Coding!
